@@ -1,6 +1,6 @@
 # Stocks Trading Bot
 
-Stock trading bot written in Rust that uses the Alpaca Markets API
+Stock trading bot written in Rust that uses the xxxx API
 
 ## Configuring
 

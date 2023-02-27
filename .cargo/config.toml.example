@@ -1,5 +1,2 @@
 # Rename me to config.toml
 [env]
-APCA_API_KEY_ID = { value = "" }
-APCA_API_SECRET_KEY = { value = "" }
-APCA_API_BASE_URL = { value = "https://paper-api.alpaca.markets" } # Use https://api.alpaca.markets for live trading
