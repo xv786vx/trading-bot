@@ -1,0 +1,13 @@
+c:\Users\rcroo\Documents\trading-bot\target\debug\deps\tracing-594ee4ae0466987f.rmeta: C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\lib.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\macros.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\dispatcher.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\field.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\instrument.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\level_filters.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\span.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\stdlib.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\subscriber.rs
+
+c:\Users\rcroo\Documents\trading-bot\target\debug\deps\tracing-594ee4ae0466987f.d: C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\lib.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\macros.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\dispatcher.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\field.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\instrument.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\level_filters.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\span.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\stdlib.rs C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\subscriber.rs
+
+C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\lib.rs:
+C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\macros.rs:
+C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\dispatcher.rs:
+C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\field.rs:
+C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\instrument.rs:
+C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\level_filters.rs:
+C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\span.rs:
+C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\stdlib.rs:
+C:\Users\rcroo\.cargo\registry\src\github.com-1ecc6299db9ec823\tracing-0.1.37\src\subscriber.rs:
