@@ -1,4 +1,5 @@
 src/data-analyzer/target
+/target
 
 #official python gitignore
 # Byte-compiled / optimized / DLL files
@@ -109,6 +110,7 @@ src/data-fetch/*.sage.py
 
 # Environments
 src/data-fetch/.env
+src/data-fetch/src/.env
 src/data-fetch/.venv
 src/data-fetch/env/
 src/data-fetch/venv/
