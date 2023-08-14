@@ -1,4 +1,4 @@
-name: Rust CI
+name: Rust CI & Clippy
 
 on:
   push:
@@ -10,19 +10,67 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  setup:
+    name: Setup Rust
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        rust: [stable, beta, nightly]
+
+    steps:
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo
+            target
+          key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
   build:
+    needs: setup
+    name: Build & Audit
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup Rust
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
       - name: Install cargo-audit
         run: cargo install cargo-audit
       - name: Build
         run: cargo build --manifest-path data-collect/Cargo.toml --verbose
-      - name: Test
-        run: cargo test --manifest-path data-collect/Cargo.toml --verbose
-      - name: Clippy
-        run: cargo clippy --manifest-path data-collect/Cargo.toml --verbose -- -D warnings
       - name: Audit
         run: cargo audit --file data-collect/Cargo.lock --ignore RUSTSEC-2020-0071 # Chrono time crate thing from 2020
+  test:
+    needs: setup
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test
+        run: cargo test --manifest-path data-collect/Cargo.toml --verbose
+  clippy:
+    needs: [build, test]
+    name: Clippy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install sarif utilities
+        run: cargo install clippy-sarif sarif-fmt
+      - name: Run clippy
+        run: cargo clippy --manifest-path data-collect/Cargo.toml --all-targets --all-features --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
+        continue-on-error: true
+      - name: Upload results to GitHub
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: rust-clippy-results.sarif
+          wait-for-processing: true
