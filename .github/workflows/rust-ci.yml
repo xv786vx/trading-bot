@@ -1,0 +1,28 @@
+name: Rust CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Rust
+        uses: actions/checkout@v3
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+      - name: Build
+        run: cargo build --manifest-path data-collect/Cargo.toml --verbose
+      - name: Test
+        run: cargo test --manifest-path data-collect/Cargo.toml --verbose
+      - name: Clippy
+        run: cargo clippy --manifest-path data-collect/Cargo.toml --verbose -- -D warnings
+      - name: Audit
+        run: cargo audit --file data-collect/Cargo.lock --ignore RUSTSEC-2020-0071 # Chrono time crate thing from 2020
