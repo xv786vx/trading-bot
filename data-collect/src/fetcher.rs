@@ -390,6 +390,9 @@ impl Fetcher {
         let data_path: &Path = Path::new("data");
         let format_string: &str = "%Y-%m-%d %H:%M:%S";
 
+        let mut output_file: File = File::create(Path::new("data/merged_data.csv"))
+            .expect("Failed to create merged csv file");
+
         let mut datetime_data_map: HashMap<NaiveDateTime, Vec<String>> = HashMap::new();
 
         for entry in read_dir(data_path).expect("Failed to read data folder") {
@@ -403,11 +406,6 @@ impl Fetcher {
 
                 for result in reader.records() {
                     let record: StringRecord = result.expect("Failed to get csv record");
-                    for item in &record {
-                        print!("{:?}, ", item);
-                        
-                    }
-                    println!("{:?}", record.len());
 
                     if let Some(datetime) = record.get(0) {
                         if let Ok(parsed_datetime) =
@@ -432,9 +430,6 @@ impl Fetcher {
         let mut sorted_data: Vec<NaiveDateTime> = datetime_data_map.keys().cloned().collect();
         sorted_data.sort();
 
-        let mut output_file: File = File::create(Path::new("data/merged_data.csv"))
-            .expect("Failed to create merged csv file");
-
         for datetime in sorted_data {
             if let Some(data) = datetime_data_map.get(&datetime) {
                 writeln!(
@@ -448,51 +443,4 @@ impl Fetcher {
         }
         println!("done");
     }
-
-    // pub fn merge_csvs_basic(&self) {
-    //     print!("Merging data...");
-    //     stdout().flush().expect("Failed to flush stdout");
-
-    //     let data_path: &Path = Path::new("data");
-    //     let format_string: &str = "%Y-%m-%d %H:%M:%S";
-
-    //     let mut all_rows: Vec<(NaiveDateTime, Vec<String>)> = Vec::new();
-
-    //     for entry in read_dir(data_path).expect("Failed to read data folder") {
-    //         let entry: DirEntry = entry.expect("Failed to get folder entry");
-    //         let entry_path: PathBuf = entry.path();
-
-    //         if entry_path.is_file() && entry_path.extension().unwrap_or_default() == "csv" {
-    //             let file: File = File::open(&entry_path).expect("Failed to open file");
-    //             let mut reader: Reader<File> =
-    //                 ReaderBuilder::new().has_headers(false).from_reader(file);
-
-    //             for result in reader.records() {
-    //                 let record: StringRecord = result.expect("Failed to get csv record");
-
-    //                 if let Some(datetime) = record.get(0) {
-    //                     if let Ok(parsed_datetime) =
-    //                         NaiveDateTime::parse_from_str(datetime, format_string)
-    //                     {
-    //                         let csv_fields: Vec<String> =
-    //                             record.iter().map(|field: &str| field.to_string()).collect();
-
-    //                         all_rows.push((parsed_datetime, csv_fields));
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     all_rows.sort_by(|a, b| a.0.cmp(&b.0));
-
-    //     let mut output_file: File = File::create(Path::new("data/merged_data.csv"))
-    //         .expect("Failed to create merged csv file");
-
-    //     for (_, csv_fields) in &all_rows {
-    //         writeln!(output_file, "{}", csv_fields.join(","))
-    //             .expect("Failed to write line to merged csv file");
-    //     }
-    //     println!("done");
-    // }
 }
