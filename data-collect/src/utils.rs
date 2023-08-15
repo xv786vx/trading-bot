@@ -62,20 +62,25 @@ pub fn filter_merged_csv() -> Result<(), Box<dyn Error>> {
         .filter(|row| row.len() == longest_row_mode)
         .collect();
 
-
-
-
     //normalization begins
-    let mut transpose = transpose_matrix(&output_data);
-    for row in transpose.iter_mut() {
-        let mut find_minmax_num_vec: Vec<_> = row.clone().iter().map(|s| s.parse::<f32>()).filter_map(Result::ok).collect();
-        find_minmax_num_vec.sort_by(|a, b| a.partial_cmp(b).unwrap());
-        let min = find_minmax_num_vec.get(0);
-        let max = find_minmax_num_vec.last();
+    let mut transpose: Vec<Vec<String>> = transpose_matrix(&output_data);
+    for row in transpose.iter_mut().skip(1) {
+        let mut row_nums: Vec<f32> = row.iter()
+        .map(|s| s.parse::<f32>())
+        .filter_map(Result::ok)
+        .collect();
 
-        for num in row.iter_mut() {
-            num = (num.parse::<f32>().expect("Failed to parse") - min) / (max - min);
+        let (max, min): (f32, f32) = row_nums.iter().fold((row_nums[0], row_nums[0]), |(max, min): (f32, f32), &x: &f32| {
+            (x.max(max), x.min(min))
+        });
+
+        let mut normalized_row: Vec<f32> = Vec::new();
+
+        for num in row_nums.iter_mut() {
+            normalized_row.push((*num - min) / (max - min));
         }
+        
+        println!("{:?}", normalized_row); // Issue: one of them is all NaN
     }
 
     let output_path: &Path = Path::new("data/merged_filtered_data.csv");
