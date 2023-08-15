@@ -1,9 +1,11 @@
 mod config;
 mod fetcher;
+mod utils;
 
 use fetcher::Fetcher;
 use reqwest::Error;
 use tokio::main;
+//use utils::filter_csv;
 
 #[main]
 async fn main() -> Result<(), Error> {
@@ -15,5 +17,6 @@ async fn main() -> Result<(), Error> {
 
     fetcher.get_data_for_nn(3).await;
     fetcher.merge_csvs();
+    //filter_csv();
     Ok(())
 }

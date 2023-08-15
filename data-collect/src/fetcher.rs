@@ -403,6 +403,11 @@ impl Fetcher {
 
                 for result in reader.records() {
                     let record: StringRecord = result.expect("Failed to get csv record");
+                    for item in &record {
+                        print!("{:?}, ", item);
+                        
+                    }
+                    println!("{:?}", record.len());
 
                     if let Some(datetime) = record.get(0) {
                         if let Ok(parsed_datetime) =
