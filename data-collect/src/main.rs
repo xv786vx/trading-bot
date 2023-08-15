@@ -11,7 +11,7 @@ use tokio::main;
 #[main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let mut fetcher: Fetcher = Fetcher::new(vec![
-        "SPY", "VIX", "rsi", "atr", "ema_9", "ema_12", "ema_26", "macd", "vwap",
+       "SPY", "VIX", "rsi", "atr", "ema_9", "ema_12", "ema_26", "macd", "vwap",
     ]);
 
     fetcher.get_data_for_nn(3).await;
