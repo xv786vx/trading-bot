@@ -6,7 +6,7 @@ use std::{
     path::Path,
 };
 
-pub fn transpose_matrix<T: Clone>(matrix: &Vec<Vec<T>>) -> Vec<Vec<T>> {
+pub fn transpose<T: Clone>(matrix: &Vec<Vec<T>>) -> Vec<Vec<T>> {
     if matrix.is_empty() {
         return Vec::new();
     }
@@ -14,7 +14,6 @@ pub fn transpose_matrix<T: Clone>(matrix: &Vec<Vec<T>>) -> Vec<Vec<T>> {
     let num_rows = matrix.len();
     let num_cols = matrix[0].len();
 
-    //let mut transposed_matrix = vec![vec![Default::default(); num_rows]; num_cols];
     let mut transposed_matrix = Vec::with_capacity(num_cols);
     for _ in 0..num_cols {
         transposed_matrix.push(Vec::with_capacity(num_rows))
@@ -60,34 +59,31 @@ pub fn filter_merged_csv() -> Result<(), Box<dyn Error>> {
     let output_data: Vec<Vec<String>> = input_data
         .into_iter()
         .filter(|row| row.len() == longest_row_mode)
-        .filter(|row| !row.contains(&String::from("0")))
         .collect();
 
-    // //normalization begins
-    // let mut transpose: Vec<Vec<String>> = transpose_matrix(&output_data);
-    // for row in transpose.iter_mut().skip(1) {
-    //     let mut row_nums: Vec<f32> = row.iter()
-    //     .map(|s| s.parse::<f32>())
-    //     .filter_map(Result::ok)
-    //     .collect();
+    //normalization begins
+    let mut transposed: Vec<Vec<String>> = transpose(&output_data).into_iter().filter(|column| !column.iter().all(|value| value == &String::from("0"))).collect();
+    for column in transposed.iter_mut().skip(1) {
+        let mut row_nums: Vec<f32> = column.iter()
+        .map(|s| s.parse::<f32>())
+        .filter_map(Result::ok)
+        .collect();
 
-    //     let (max, min): (f32, f32) = row_nums.iter().fold((row_nums[0], row_nums[0]), |(max, min): (f32, f32), &x: &f32| {
-    //         (x.max(max), x.min(min))
-    //     });
+        let (max, min): (f32, f32) = row_nums.iter().fold((row_nums[0], row_nums[0]), |(max, min): (f32, f32), &x: &f32| {
+            (x.max(max), x.min(min))
+        });
 
-    //     let mut normalized_row: Vec<f32> = Vec::new();
+        let mut normalized_row: Vec<f32> = Vec::new();
 
-    //     for num in row_nums.iter_mut() {
-    //         normalized_row.push((*num - min) / (max - min));
-    //     }
-        
-    //     println!("{:?}", normalized_row); // Issue: one of them is all NaN
-    // }
+        for num in row_nums.iter_mut() {
+            normalized_row.push((*num - min) / (max - min));
+        }
+    }
 
     let output_path: &Path = Path::new("data/merged_filtered_data.csv");
     let mut output_file: File = File::create(output_path)?;
 
-    for row in output_data {
+    for row in transpose(&transposed) {
         writeln!(output_file, "{}", row.join(","))?;
     }
 
