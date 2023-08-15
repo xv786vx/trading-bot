@@ -6,6 +6,29 @@ use std::{
     path::Path,
 };
 
+pub fn transpose_matrix<T: Clone>(matrix: &Vec<Vec<T>>) -> Vec<Vec<T>> {
+    if matrix.is_empty() {
+        return Vec::new();
+    }
+
+    let num_rows = matrix.len();
+    let num_cols = matrix[0].len();
+
+    //let mut transposed_matrix = vec![vec![Default::default(); num_rows]; num_cols];
+    let mut transposed_matrix = Vec::with_capacity(num_cols);
+    for _ in 0..num_cols {
+        transposed_matrix.push(Vec::with_capacity(num_rows))
+    }
+
+    for i in 0..num_rows {
+        for j in 0..num_cols {
+            transposed_matrix[j].push(matrix[i][j].clone());
+        }
+    }
+
+    transposed_matrix
+}
+
 pub fn filter_merged_csv() -> Result<(), Box<dyn Error>> {
     print!("Filtering merged data...");
     stdout().flush()?;
@@ -39,13 +62,30 @@ pub fn filter_merged_csv() -> Result<(), Box<dyn Error>> {
         .filter(|row| row.len() == longest_row_mode)
         .collect();
 
+
+
+
+    //normalization begins
+    let mut transpose = transpose_matrix(&output_data);
+    for row in transpose.iter_mut() {
+        let mut find_minmax_num_vec: Vec<_> = row.clone().iter().map(|s| s.parse::<f32>()).filter_map(Result::ok).collect();
+        find_minmax_num_vec.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        let min = find_minmax_num_vec.get(0);
+        let max = find_minmax_num_vec.last();
+
+        for num in row.iter_mut() {
+            num = (num.parse::<f32>().expect("Failed to parse") - min) / (max - min);
+        }
+    }
+
     let output_path: &Path = Path::new("data/merged_filtered_data.csv");
     let mut output_file: File = File::create(output_path)?;
 
-    for row in output_data {
+    for row in transpose {
         writeln!(output_file, "{}", row.join(","))?;
     }
 
     println!("done");
     Ok(())
 }
+
