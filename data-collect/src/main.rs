@@ -2,7 +2,7 @@ mod config;
 mod fetcher;
 mod preprocessing;
 
-use crate::preprocessing::filter_merged_csv;
+use crate::preprocessing::parse_merged_csv;
 
 use fetcher::Fetcher;
 use std::error::Error;
@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     fetcher.get_data_for_nn(3).await;
     fetcher.merge_csvs();
-    filter_merged_csv()?;
+    parse_merged_csv()?;
 
     Ok(())
 }
