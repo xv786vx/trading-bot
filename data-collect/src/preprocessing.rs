@@ -62,7 +62,8 @@ pub fn filter_merged_csv() -> Result<(), Box<dyn Error>> {
         .collect();
 
     let mut transposed: Vec<Vec<String>> = transpose(&transpose(&transpose(&output_data).into_iter().filter(|column| !column.iter().all(|value| value == &String::from("0"))).collect()).into_iter().filter(|row| !row.contains(&"0".to_string())).collect()); // hella scuffed 💀💀
-
+    
+    //filtering ends, normalization begins
     for column in transposed.iter_mut().skip(1) {
         let mut row_nums: Vec<f32> = column.iter()
         .map(|s| s.parse::<f32>())
@@ -71,7 +72,7 @@ pub fn filter_merged_csv() -> Result<(), Box<dyn Error>> {
 
         let (max, min): (f32, f32) = row_nums.iter().fold((row_nums[0], row_nums[0]), |(max, min): (f32, f32), &x: &f32| {
             (x.max(max), x.min(min))
-        });
+        }); //finds the max and min
 
         let mut normalized_row: Vec<f32> = Vec::new();
 

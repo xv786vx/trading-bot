@@ -1,8 +1,8 @@
 mod config;
 mod fetcher;
-mod utils;
+mod preprocessing;
 
-use crate::utils::filter_merged_csv;
+use crate::preprocessing::filter_merged_csv;
 
 use fetcher::Fetcher;
 use std::error::Error;
