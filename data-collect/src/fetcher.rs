@@ -399,6 +399,10 @@ impl Fetcher {
             let entry: DirEntry = entry.expect("Failed to get folder entry");
             let entry_path: PathBuf = entry.path();
 
+            if entry.file_name() == "merged_data.csv" || entry.file_name() == "merged_filtered_data.csv" {
+                continue;
+            }
+
             if entry_path.is_file() && entry_path.extension().unwrap_or_default() == "csv" {
                 let file: File = File::open(&entry_path).expect("Failed to open file");
                 let mut reader: Reader<File> =

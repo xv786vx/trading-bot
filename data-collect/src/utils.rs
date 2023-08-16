@@ -61,8 +61,8 @@ pub fn filter_merged_csv() -> Result<(), Box<dyn Error>> {
         .filter(|row| row.len() == longest_row_mode)
         .collect();
 
-    //normalization begins
-    let mut transposed: Vec<Vec<String>> = transpose(&output_data).into_iter().filter(|column| !column.iter().all(|value| value == &String::from("0"))).collect();
+    let mut transposed: Vec<Vec<String>> = transpose(&transpose(&transpose(&output_data).into_iter().filter(|column| !column.iter().all(|value| value == &String::from("0"))).collect()).into_iter().filter(|row| !row.contains(&"0".to_string())).collect()); // hella scuffed 💀💀
+
     for column in transposed.iter_mut().skip(1) {
         let mut row_nums: Vec<f32> = column.iter()
         .map(|s| s.parse::<f32>())
