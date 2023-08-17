@@ -28,7 +28,7 @@ pub fn transpose<T: Clone>(matrix: &Vec<Vec<T>>) -> Vec<Vec<T>> {
     transposed_matrix
 }
 
-pub fn parse_merged_csv() -> Result<(), Box<dyn Error>> {
+pub fn parse_merged_csv(normalization: bool) -> Result<(), Box<dyn Error>> {
     print!("Filtering merged data...");
     stdout().flush()?;
 
@@ -64,32 +64,42 @@ pub fn parse_merged_csv() -> Result<(), Box<dyn Error>> {
     let mut transposed: Vec<Vec<String>> = transpose(&transpose(&transpose(&output_data).into_iter().filter(|column| !column.iter().all(|value| value == &String::from("0"))).collect()).into_iter().filter(|row| !row.contains(&"0".to_string())).collect()); // hella scuffed 💀💀
     let mut normalized_data: Vec<Vec<String>> = vec![transposed.get(0).expect("Failed to get datetime column").to_owned()];
 
-    //filtering ends, normalization begins
-    for column in transposed.iter_mut().skip(1) {
-        let mut column_nums: Vec<f32> = column.iter()
-        .map(|s| s.parse::<f32>())
-        .filter_map(Result::ok)
-        .collect();
+    if normalization == true {
+        //filtering ends, normalization begins
+        for column in transposed.iter_mut().skip(1) {
+            let mut column_nums: Vec<f32> = column.iter()
+            .map(|s| s.parse::<f32>())
+            .filter_map(Result::ok)
+            .collect();
 
-        let (max, min): (f32, f32) = column_nums.iter().fold((column_nums[0], column_nums[0]), |(max, min): (f32, f32), &x: &f32| {
-            (x.max(max), x.min(min))
-        });
+            let (max, min): (f32, f32) = column_nums.iter().fold((column_nums[0], column_nums[0]), |(max, min): (f32, f32), &x: &f32| {
+                (x.max(max), x.min(min))
+            });
 
-        let mut normalized_column: Vec<String> = Vec::new();
+            let mut normalized_column: Vec<String> = Vec::new();
 
-        for num in column_nums.iter_mut() {
-            normalized_column.push(((*num - min) / (max - min)).to_string());
+            for num in column_nums.iter_mut() {
+                normalized_column.push(((*num - min) / (max - min)).to_string());
+            }
+
+            normalized_data.push(normalized_column);
         }
 
-        normalized_data.push(normalized_column);
-    }
+        let output_path: &Path = Path::new("data/merged_normalized_data.csv");
+        let mut output_file: File = File::create(output_path)?;
 
-    let output_path: &Path = Path::new("data/merged_normalized_data.csv");
-    let mut output_file: File = File::create(output_path)?;
+        for row in transpose(&normalized_data) {
+            writeln!(output_file, "{}", row.join(","))?;
+        }
+    } else {
+        let output_path: &Path = Path::new("data/merged_filtered_data.csv");
+        let mut output_file: File = File::create(output_path)?;
 
-    for row in transpose(&normalized_data) {
-        writeln!(output_file, "{}", row.join(","))?;
+        for row in transpose(&transposed) {
+            writeln!(output_file, "{}", row.join(","))?;
+        }
     }
+    
 
     println!("done");
     Ok(())

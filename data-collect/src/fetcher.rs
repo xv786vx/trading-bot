@@ -106,7 +106,7 @@ impl Fetcher {
         Ok((response_parent, key_status))
     }
 
-    pub async fn get_data(&mut self, symbol: &str, date: &str) -> Result<Value, Error> {
+    pub async fn get_data(&mut self, symbol: &str, date: &str, timeframe: &str) -> Result<Value, Error> {
         let mut valid: bool = false;
         let mut data_parent: Value = Value::Null;
 
@@ -119,7 +119,7 @@ impl Fetcher {
                             vec![
                                 ("symbol", symbol),
                                 ("format", "JSON"),
-                                ("interval", "30min"),
+                                ("interval", timeframe),
                                 ("outputsize", "5000"),
                                 ("end_date", date),
                             ],
@@ -157,7 +157,7 @@ impl Fetcher {
                             vec![
                                 ("symbol", "SPY"),
                                 ("format", "JSON"),
-                                ("interval", "30min"),
+                                ("interval", timeframe),
                                 ("outputsize", "5000"),
                                 ("time_period", &time_period.to_string()),
                                 ("end_date", date),
@@ -190,7 +190,7 @@ impl Fetcher {
                             vec![
                                 ("symbol", "SPY"),
                                 ("format", "JSON"),
-                                ("interval", "30min"),
+                                ("interval", timeframe),
                                 ("outputsize", "5000"),
                                 ("end_date", date),
                             ],
@@ -327,7 +327,7 @@ impl Fetcher {
         writer.flush().expect("Failed to flush writer");
     }
 
-    pub async fn get_data_for_nn(&mut self, loops: i32) {
+    pub async fn get_data_for_nn(&mut self, loops: i32, timeframe: &str) {
         print!("Gathering data...");
         stdout().flush().expect("Failed to flush stdout");
 
@@ -339,7 +339,7 @@ impl Fetcher {
 
             while counter < loops {
                 let data_response: Result<Value, Error> =
-                    self.get_data(asset, &final_datetime).await;
+                    self.get_data(asset, &final_datetime, timeframe).await;
 
                 match data_response {
                     Ok(data) => {
