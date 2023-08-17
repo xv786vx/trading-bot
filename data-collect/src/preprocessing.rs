@@ -99,9 +99,6 @@ pub fn parse_merged_csv(normalization: bool) -> Result<(), Box<dyn Error>> {
             writeln!(output_file, "{}", row.join(","))?;
         }
     }
-    
-
     println!("done");
     Ok(())
 }
-
