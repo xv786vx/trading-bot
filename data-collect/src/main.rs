@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     fetcher.get_data_for_nn(3, "30min").await;
     fetcher.merge_csvs();
-    parse_merged_csv(true)?;
+    parse_merged_csv(false)?;
 
     Ok(())
 }

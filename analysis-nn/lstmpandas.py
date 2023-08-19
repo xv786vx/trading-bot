@@ -39,25 +39,68 @@ from keras.layers import Dense,LSTM,Dropout,Flatten
 from keras import Sequential
 
 # print(os.getcwd())
-df = pd.read_csv(os.path.join(os.getcwd(), "data-collect", "data", "merged_normalized_data.csv"), header=None)
-# print(df.head(5))
-print(df.info())
+df = pd.read_csv(os.path.join(os.getcwd(), "data-collect", "data", "merged_filtered_data.csv"), header=None)
+#print(df.head(5))
+#print(df.info())
 
-y = np.array(df.iloc[:, 10]).astype('float32')
-X = df.drop(df.columns[10], axis=1)
-X = np.array(df.drop(df.columns[0], axis=1)).astype('float32')
+spy_close = df.iloc[:, 10].values
+features = df.iloc[:, 1:18].values
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+timesteps = 10
 
-X_train = X_train.reshape((X_train.shape[0], 1, X_train.shape[1]))
-X_test = X_test.reshape((X_test.shape[0], 1, X_test.shape[1]))
+scaler = MinMaxScaler()
+X_scaled = scaler.fit_transform(features)
 
-num_features = X_train.shape[2]
+#reshaping data
+num_samples = len(X_scaled) - timesteps + 1
 
-model = Sequential()
-model.add(LSTM(50, return_sequences=True, input_shape=(1, num_features)))
-model.add(Dense(1))
-model.compile(optimizer='adam', loss='mean_squared_error')
+X_reshaped = np.zeros((num_samples, timesteps, X_scaled.shape[1]))
+for i in range (num_samples):
+    X_reshaped[i] = X_scaled[i:i+timesteps]
 
-model.fit(X_train, y_train, epochs=50, batch_size=32, verbose=0)
-y_pred = model.predict(X_test)
+y_reshaped = spy_close[timesteps - 1:]
+
+#70 : 15 : 15 split for train, test and validation
+X_train, X_temp, y_train, y_temp = train_test_split(X_reshaped, y_reshaped, test_size=0.3, shuffle=False)
+X_test, X_val, y_test, y_val = train_test_split(X_temp, y_temp, test_size=0.5, shuffle=False)
+
+
+
+#LSTM Model
+model = Sequential([
+    LSTM(50, return_sequences=True, input_shape=(timesteps, X_train.shape[2])),
+    LSTM(32, return_sequences=False),
+    Dense(25),
+    Dense(1)
+])
+
+#compile and train
+model.compile(optimizer="adam", loss="mean_squared_error")
+history = model.fit(X_train, y_train, epochs=3, batch_size=32, validation_data=(X_val, y_val))
+
+#eval on test set
+loss = model.evaluate(X_test, y_test)
+print("Test Loss: ", loss)
+
+predictions_scaled = model.predict(X_test)
+
+workable_matrix = np.zeros(shape=(len(predictions_scaled), 17))
+workable_matrix[:, 10] = predictions_scaled[:, 0]
+
+predictions = scaler.inverse_transform(workable_matrix)
+print(predictions_scaled.shape)
+predictions = scaler.inverse_transform(workable_matrix)[:,10]
+
+y_test_reshaped = y_test.reshape(-1, 1)
+
+y_test_original = scaler.inverse_transform(y_test_reshaped)[:, 0]
+
+
+# plt.figure(figsize=(12, 6))
+# plt.plot(y_test_original, label='True')
+# plt.plot(predictions, label='Predicted')
+# plt.title("LSTM Predictions vs True Values")
+# plt.xlabel("Time")
+# plt.ylabel("Close Price of SPY")
+# plt.legend()
+# plt.show()
