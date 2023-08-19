@@ -38,15 +38,12 @@ from tensorflow import keras
 from keras.layers import Dense,LSTM,Dropout,Flatten
 from keras import Sequential
 
-# print(os.getcwd())
 df = pd.read_csv(os.path.join(os.getcwd(), "data-collect", "data", "merged_filtered_data.csv"), header=None)
-#print(df.head(5))
-#print(df.info())
 
 spy_close = df.iloc[:, 10].values
 features = df.iloc[:, 1:18].values
 
-timesteps = 10
+timesteps = 100
 
 scaler = MinMaxScaler()
 X_scaled = scaler.fit_transform(features)
@@ -68,7 +65,7 @@ X_test, X_val, y_test, y_val = train_test_split(X_temp, y_temp, test_size=0.5, s
 
 #LSTM Model
 model = Sequential([
-    LSTM(50, return_sequences=True, input_shape=(timesteps, X_train.shape[2])),
+    LSTM(128, return_sequences=True, input_shape=(timesteps, X_train.shape[2])),
     LSTM(32, return_sequences=False),
     Dense(25),
     Dense(1)
@@ -76,7 +73,7 @@ model = Sequential([
 
 #compile and train
 model.compile(optimizer="adam", loss="mean_squared_error")
-history = model.fit(X_train, y_train, epochs=3, batch_size=32, validation_data=(X_val, y_val))
+history = model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_val, y_val))
 
 #eval on test set
 loss = model.evaluate(X_test, y_test)
@@ -84,23 +81,26 @@ print("Test Loss: ", loss)
 
 predictions_scaled = model.predict(X_test)
 
-workable_matrix = np.zeros(shape=(len(predictions_scaled), 17))
-workable_matrix[:, 10] = predictions_scaled[:, 0]
+# workable_matrix = np.zeros(shape=(len(predictions_scaled), 17))
+# workable_matrix[:, 10] = predictions_scaled[:, 0]
 
-predictions = scaler.inverse_transform(workable_matrix)
-print(predictions_scaled.shape)
-predictions = scaler.inverse_transform(workable_matrix)[:,10]
+# #predictions = scaler.inverse_transform(workable_matrix)
 
-y_test_reshaped = y_test.reshape(-1, 1)
+# predictions = scaler.inverse_transform(workable_matrix)[:,10]
 
-y_test_original = scaler.inverse_transform(y_test_reshaped)[:, 0]
+print(predictions_scaled)
+print(y_test)
+
+# y_test_matrix = np.zeros(shape=(len(y_test), 17))
+# y_test_matrix[:, 10] = y_test
+# y_test = scaler.inverse_transform(y_test_matrix)[:, 10]
 
 
-# plt.figure(figsize=(12, 6))
-# plt.plot(y_test_original, label='True')
-# plt.plot(predictions, label='Predicted')
-# plt.title("LSTM Predictions vs True Values")
-# plt.xlabel("Time")
-# plt.ylabel("Close Price of SPY")
-# plt.legend()
-# plt.show()
+plt.figure(figsize=(12, 6))
+plt.plot(y_test, label='True')
+plt.plot(predictions_scaled, label='Predicted')
+plt.title("LSTM Predictions vs True Values")
+plt.xlabel("Time")
+plt.ylabel("Close Price of SPY")
+plt.legend()
+plt.show()
