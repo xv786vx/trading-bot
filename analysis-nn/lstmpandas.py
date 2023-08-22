@@ -12,8 +12,8 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 
 #All necessary plotly libraries
-import plotly as plotly
-import plotly.io as plotly
+# import plotly as plotly
+# import plotly.io as plotly
 # import plotly.graph_objects as go
 # import plotly.express as px
 # from plotly.subplots import make_subplots
@@ -35,10 +35,10 @@ import plotly.io as plotly
 
 # LSTM 
 # from tensorflow import keras
-from keras.layers import Dense,LSTM# ,Dropout,Flatten
+from keras.layers import Dense,LSTM, Dropout
 from keras import Sequential
 
-df = pd.read_csv(os.path.join(os.getcwd(), "..", "data-collect", "data", "merged_filtered_data.csv"), header=None)
+df = pd.read_csv(os.path.join(os.getcwd(), "data-collect", "data", "merged_filtered_data.csv"), header=None)
 
 spy_close = df.iloc[:, 10].values
 features = df.iloc[:, 1:18].values
@@ -63,9 +63,11 @@ X_test, X_val, y_test, y_val = train_test_split(X_temp, y_temp, test_size=0.5, s
 
 #LSTM Model
 model = Sequential([
-    LSTM(128, return_sequences=True, input_shape=(timesteps, X_train.shape[2])),
+    LSTM(64, return_sequences=True, input_shape=(timesteps, X_train.shape[2])),
+    Dropout(0.2),
     LSTM(32, return_sequences=False),
-    Dense(25),
+    Dropout(0.2),
+    Dense(16),
     Dense(1)
 ])
 
@@ -82,19 +84,6 @@ print("Test Loss: ", loss)
 
 predictions_scaled = model.predict(X_test)
 
-# workable_matrix = np.zeros(shape=(len(predictions_scaled), 17))
-# workable_matrix[:, 10] = predictions_scaled[:, 0]
-
-# #predictions = scaler.inverse_transform(workable_matrix)
-
-# predictions = scaler.inverse_transform(workable_matrix)[:,10]
-
-# print(predictions_scaled)
-# print(y_test)
-
-# y_test_matrix = np.zeros(shape=(len(y_test), 17))
-# y_test_matrix[:, 10] = y_test
-# y_test = scaler.inverse_transform(y_test_matrix)[:, 10]
 
 plt.figure(figsize=(12, 6))
 plt.plot(y_test, label='True')
