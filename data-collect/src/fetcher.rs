@@ -106,7 +106,12 @@ impl Fetcher {
         Ok((response_parent, key_status))
     }
 
-    pub async fn get_data(&mut self, symbol: &str, date: &str, timeframe: &str) -> Result<Value, Error> {
+    pub async fn get_data(
+        &mut self,
+        symbol: &str,
+        date: &str,
+        timeframe: &str,
+    ) -> Result<Value, Error> {
         let mut valid: bool = false;
         let mut data_parent: Value = Value::Null;
 
@@ -399,7 +404,9 @@ impl Fetcher {
             let entry: DirEntry = entry.expect("Failed to get folder entry");
             let entry_path: PathBuf = entry.path();
 
-            if entry.file_name() == "merged_data.csv" || entry.file_name() == "merged_filtered_data.csv" {
+            if entry.file_name() == "merged_data.csv"
+                || entry.file_name() == "merged_parsed_data.csv"
+            {
                 continue;
             }
 

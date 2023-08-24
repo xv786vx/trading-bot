@@ -11,8 +11,8 @@ pub fn transpose<T: Clone>(matrix: &Vec<Vec<T>>) -> Vec<Vec<T>> {
         return Vec::new();
     }
 
-    let num_rows = matrix.len();
-    let num_cols = matrix[0].len();
+    let num_rows: usize = matrix.len();
+    let num_cols: usize = matrix[0].len();
 
     let mut transposed_matrix = Vec::with_capacity(num_cols);
     for _ in 0..num_cols {
@@ -61,20 +61,35 @@ pub fn parse_merged_csv(normalization: bool) -> Result<(), Box<dyn Error>> {
         .filter(|row| row.len() == longest_row_mode)
         .collect();
 
-    let mut transposed: Vec<Vec<String>> = transpose(&transpose(&transpose(&output_data).into_iter().filter(|column| !column.iter().all(|value| value == &String::from("0"))).collect()).into_iter().filter(|row| !row.contains(&"0".to_string())).collect()); // hella scuffed 💀💀
-    let mut normalized_data: Vec<Vec<String>> = vec![transposed.get(0).expect("Failed to get datetime column").to_owned()];
+    let mut transposed: Vec<Vec<String>> = transpose(
+        &transpose(
+            &transpose(&output_data)
+                .into_iter()
+                .filter(|column| !column.iter().all(|value| value == &String::from("0")))
+                .collect(),
+        )
+        .into_iter()
+        .filter(|row| !row.contains(&"0".to_string()))
+        .collect(),
+    ); // hella scuffed 💀💀
+    let mut normalized_data: Vec<Vec<String>> = vec![transposed
+        .get(0)
+        .expect("Failed to get datetime column")
+        .to_owned()];
 
-    if normalization == true {
+    if normalization {
         //filtering ends, normalization begins
         for column in transposed.iter_mut().skip(1) {
-            let mut column_nums: Vec<f32> = column.iter()
-            .map(|s| s.parse::<f32>())
-            .filter_map(Result::ok)
-            .collect();
+            let mut column_nums: Vec<f32> = column
+                .iter()
+                .map(|s| s.parse::<f32>())
+                .filter_map(Result::ok)
+                .collect();
 
-            let (max, min): (f32, f32) = column_nums.iter().fold((column_nums[0], column_nums[0]), |(max, min): (f32, f32), &x: &f32| {
-                (x.max(max), x.min(min))
-            });
+            let (max, min): (f32, f32) = column_nums.iter().fold(
+                (column_nums[0], column_nums[0]),
+                |(max, min): (f32, f32), &x: &f32| (x.max(max), x.min(min)),
+            );
 
             let mut normalized_column: Vec<String> = Vec::new();
 
@@ -84,21 +99,24 @@ pub fn parse_merged_csv(normalization: bool) -> Result<(), Box<dyn Error>> {
 
             normalized_data.push(normalized_column);
         }
-
-        let output_path: &Path = Path::new("data/merged_normalized_data.csv");
-        let mut output_file: File = File::create(output_path)?;
-
-        for row in transpose(&normalized_data) {
-            writeln!(output_file, "{}", row.join(","))?;
-        }
-    } else {
-        let output_path: &Path = Path::new("data/merged_filtered_data.csv");
-        let mut output_file: File = File::create(output_path)?;
-
-        for row in transpose(&transposed) {
-            writeln!(output_file, "{}", row.join(","))?;
-        }
     }
+
+    let output_path: &Path = Path::new("data/merged_parsed_data.csv");
+    let mut output_file: File = File::create(output_path)?;
+
+    writeln!(
+        output_file,
+        "datetime,atr,ema9,ema12,ema26,macd,macd_signal,macd_hist,rsi,spy_open,spy_high,spy_low,spy_close,volume,vix_open,vix_high,vix_low,vix_close,vwap"
+    )?;
+
+    for row in transpose(if normalization {
+        &normalized_data
+    } else {
+        &transposed
+    }) {
+        writeln!(output_file, "{}", row.join(","))?;
+    }
+
     println!("done");
     Ok(())
 }
