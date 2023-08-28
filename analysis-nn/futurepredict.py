@@ -6,13 +6,16 @@ from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Dropout
 
-scaler = MinMaxScaler(feature_range=(0, 1))
-data = pd.read_csv(os.path.join(os.getcwd(), "data-collect", "data", "merged_filtered_data.csv"), header=None)  # Replace with your CSV file
+
+data = pd.read_csv(os.path.join(os.getcwd(), "data-collect", "data", "merged_parsed_data.csv")) 
+# print(data.info())
 # data = data.iloc[:, 1:18]
-data = scaler.fit_transform(np.array(data.iloc[:, 12]).reshape(-1, 1))
+y = data["spy_close"].fillna(method="ffill") # SPY Close, our target variable, index # 11, Column 12
+y = y.values.reshape(-1, 1)
 
+scaler = MinMaxScaler(feature_range=(0, 1))
+y = scaler.fit_transform(y)
 
-y = data # SPY Close, our target variable, index # 11, Column 12
 n_lookback = 12
 n_forecast = 3
 
@@ -27,13 +30,14 @@ X = np.array(X)
 Y = np.array(Y)
 
 model = Sequential([
-    LSTM(32, dropout=0.2, input_shape=(n_lookback, 1), return_sequences=True),
-    LSTM(16, return_sequences=False),
+    LSTM(50, input_shape=(n_lookback, 1), return_sequences=True),
+    LSTM(50, return_sequences=False),
     #Dropout(0.2),
-    Dense(n_forecast, kernel_regularizer='l2')
+    Dense(n_forecast)
 ])
+
 model.compile(optimizer='adam', loss='mean_squared_error')
-model.fit(X, Y, epochs=80, batch_size=16, verbose=0)
+model.fit(X, Y, epochs=100, batch_size=32, verbose=0)
 
 #forecast generation
 X_ = y[-n_lookback:]
@@ -49,5 +53,18 @@ print(Y_)
 # print(predicted_value)
 
 #organize results in df
-#df_past = data.iloc[:, 10].reset_index()
+df_past = data[["spy_close"]].reset_index()
+df_past.rename(columns={"index": "Date", "spy_close": "Actual"}, inplace=True)
+df_past["Date"] = pd.to_datetime(df_past["Date"])
+df_past["Forecast"] = np.nan
+df_past["Forecast"].iloc[-1] = df_past["Actual"].iloc[-1]
 
+df_future = pd.DataFrame(columns=["Date", "Actual", "Forecast"])
+df_future["Date"] = pd.date_range(start=df_past["Date"].iloc[-1] + pd.Timedelta(minutes=15), periods=n_forecast)
+df_future["Forecast"] = Y_.flatten()
+df_future["Actual"] = np.nan
+
+results = df_past.append(df_future).set_index("Date")
+
+#results plot
+results.plot(title="SPY")
