@@ -62,6 +62,7 @@ impl Fetcher {
         &mut self,
         route: &str,
         params: Vec<(&str, &str)>,
+        debug: bool,
     ) -> Result<(Value, KeyStatus), Error> {
         let mut response_parent: Value = Value::Null;
         let mut key_status: KeyStatus = KeyStatus::AllKeysFailed;
@@ -79,6 +80,10 @@ impl Fetcher {
                 .build()
                 .expect("Failed to build request");
 
+            if debug {
+                println!("{}", request.url());
+            }
+
             let response: Value = match match self.client.execute(request).await {
                 Ok(response) => response,
                 Err(err) => return Err(err),
@@ -89,6 +94,10 @@ impl Fetcher {
                 Ok(value) => value,
                 Err(err) => return Err(err),
             };
+
+            if response["status"] == "error" && debug {
+                println!("{}", response);
+            }
 
             if response["status"] == "ok" {
                 response_parent = response;
@@ -111,6 +120,7 @@ impl Fetcher {
         symbol: &str,
         date: &str,
         timeframe: &str,
+        debug: bool,
     ) -> Result<Value, Error> {
         let mut valid: bool = false;
         let mut data_parent: Value = Value::Null;
@@ -128,6 +138,7 @@ impl Fetcher {
                                 ("outputsize", "5000"),
                                 ("end_date", date),
                             ],
+                            debug,
                         )
                         .await
                     {
@@ -167,6 +178,7 @@ impl Fetcher {
                                 ("time_period", &time_period.to_string()),
                                 ("end_date", date),
                             ],
+                            debug,
                         )
                         .await
                     {
@@ -199,6 +211,7 @@ impl Fetcher {
                                 ("outputsize", "5000"),
                                 ("end_date", date),
                             ],
+                            debug,
                         )
                         .await
                     {
@@ -332,7 +345,7 @@ impl Fetcher {
         writer.flush().expect("Failed to flush writer");
     }
 
-    pub async fn get_data_for_nn(&mut self, loops: i32, timeframe: &str) {
+    pub async fn get_data_for_nn(&mut self, loops: i32, timeframe: &str, debug: bool) {
         print!("Gathering data...");
         stdout().flush().expect("Failed to flush stdout");
 
@@ -340,11 +353,18 @@ impl Fetcher {
             let mut counter: i32 = 0;
 
             let current_day: DateTime<Utc> = Utc::now();
-            let mut final_datetime: String = current_day.format("%F %R").to_string();
+            let mut final_datetime: String;
+
+            if timeframe == "1day" {
+                final_datetime = current_day.format("%F").to_string();
+            } else {
+                final_datetime = current_day.format("%F %R").to_string();
+            }
 
             while counter < loops {
-                let data_response: Result<Value, Error> =
-                    self.get_data(asset, &final_datetime, timeframe).await;
+                let data_response: Result<Value, Error> = self
+                    .get_data(asset, &final_datetime, timeframe, debug)
+                    .await;
 
                 match data_response {
                     Ok(data) => {
@@ -352,24 +372,50 @@ impl Fetcher {
                             if let Value::Object(candle) =
                                 &values.last().expect("Error when getting last value")
                             {
-                                let parsed_datetime: Result<NaiveDateTime, ParseError> =
-                                    NaiveDateTime::parse_from_str(
-                                        candle["datetime"]
-                                            .as_str()
-                                            .expect("Error when converting Value to &str"),
-                                        "%Y-%m-%d %H:%M:%S",
-                                    );
+                                if timeframe == "1day" {
+                                    let parsed_date: Result<NaiveDate, ParseError> =
+                                        NaiveDate::parse_from_str(
+                                            candle["datetime"]
+                                                .as_str()
+                                                .expect("Error when converting Value to &str"),
+                                            "%Y-%m-%d",
+                                        );
 
-                                match parsed_datetime {
-                                    Ok(parsed) => {
-                                        let utc_datetime: DateTime<Utc> =
-                                            DateTime::<Utc>::from_utc(parsed, Utc);
-                                        final_datetime = utc_datetime.format("%F %R").to_string();
+                                    match parsed_date {
+                                        Ok(parsed) => {
+                                            let utc_date: NaiveDate = NaiveDate::from_ymd_opt(
+                                                parsed.year(),
+                                                parsed.month(),
+                                                parsed.day(),
+                                            )
+                                            .expect("Failed to parse NaiveDate");
+                                            final_datetime = utc_date.format("%F").to_string();
+                                        }
+                                        Err(e) => {
+                                            println!("Error when parsing date: {}", e);
+                                            break;
+                                        }
                                     }
+                                } else {
+                                    let parsed_datetime: Result<NaiveDateTime, ParseError> =
+                                        NaiveDateTime::parse_from_str(
+                                            candle["datetime"]
+                                                .as_str()
+                                                .expect("Error when converting Value to &str"),
+                                            "%Y-%m-%d %H:%M:%S",
+                                        );
 
-                                    Err(e) => {
-                                        println!("Error when parsing datetime: {}", e);
-                                        break;
+                                    match parsed_datetime {
+                                        Ok(parsed) => {
+                                            let utc_datetime: DateTime<Utc> =
+                                                DateTime::<Utc>::from_utc(parsed, Utc);
+                                            final_datetime =
+                                                utc_datetime.format("%F %R").to_string();
+                                        }
+                                        Err(e) => {
+                                            println!("Error when parsing datetime: {}", e);
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -430,7 +476,7 @@ impl Fetcher {
 
                             datetime_data_map
                                 .entry(parsed_datetime)
-                                .or_insert_with(Vec::new)
+                                .or_default()
                                 .extend(csv_fields);
                         }
                     }

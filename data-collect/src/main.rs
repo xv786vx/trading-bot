@@ -17,7 +17,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         "SPY", "VIX", "rsi", "atr", "ema_9", "ema_12", "ema_26", "macd", "vwap",
     ]);
 
-    fetcher.get_data_for_nn(5, "15min").await;
+    let debug: bool = yn("Debug mode? [y/N]\n> ");
+
+    fetcher.get_data_for_nn(3, "1day", debug).await;
     fetcher.merge_csvs();
 
     parse_merged_csv(yn("Normalize data? [y/N]\n> "))?;

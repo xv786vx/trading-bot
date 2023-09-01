@@ -14,14 +14,14 @@ pub fn transpose<T: Clone>(matrix: &Vec<Vec<T>>) -> Vec<Vec<T>> {
     let num_rows: usize = matrix.len();
     let num_cols: usize = matrix[0].len();
 
-    let mut transposed_matrix = Vec::with_capacity(num_cols);
+    let mut transposed_matrix: Vec<Vec<T>> = Vec::with_capacity(num_cols);
     for _ in 0..num_cols {
         transposed_matrix.push(Vec::with_capacity(num_rows))
     }
 
-    for i in 0..num_rows {
-        for j in 0..num_cols {
-            transposed_matrix[j].push(matrix[i][j].clone());
+    for row in matrix.iter().take(num_rows) {
+        for (j, column) in transposed_matrix.iter_mut().enumerate().take(num_cols) {
+            column.push(row[j].clone());
         }
     }
 
